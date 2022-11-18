@@ -1,0 +1,60 @@
+public class trgController
+{
+    public static void trgMethod(List<Contact> newList,Map<Id,Contact> oldMap)
+    {
+        Set<Id> accIds = new Set<Id>();
+        
+        if(newList.size() > 0)
+        {
+            for(Contact newCon : newList)
+            {
+                if(oldMap != null)
+                {
+                    Contact oldCon = oldMap.get(newCon.Id);
+                    if(oldCon.AccountId != null && newCon.AccountId != null && oldCon.AccountId != newCon.AccountId)
+                    {
+                        accIds.add(oldCon.AccountId);
+                        accIds.add(newCon.AccountId);
+                    }
+                    else 
+                    {
+                        accIds.add(newCon.AccountId);
+                    }
+                }
+                else 
+                {
+                    accIds.add(newCon.AccountId);
+                }
+            }
+        }
+        
+        Map<Id,Account> accMap = new Map<Id,Account>([Select Test_Checkbox__c,Id from Account where Id IN : accIds]);
+        Map<Id,Account> acctMap = new Map<Id,Account>();
+        List<Contact> conList = [Select Id,AccountId,FirstName from Contact where AccountId IN : accIds];
+        
+        if(conList.size() > 0)
+        {
+            for(Contact con : conList)
+            {
+                if(accMap.containsKey(con.AccountId))
+                {
+                    Account acct = accMap.get(con.AccountId);
+                    if(con.FirstName == '' || con.FirstName == null)
+                    {
+                        acct.Test_Checkbox__c = true;
+                        acctMap.put(acct.Id,acct);
+                    }
+                    else if(con.FirstName != '' || con.FirstName != null)
+                    {
+                        acct.Test_Checkbox__c = false;
+                        acctMap.put(acct.id,acct);
+                    }
+                }
+            }
+        }
+        if(acctMap != null)
+        {
+            update acctMap.values();
+        }
+    }
+}
